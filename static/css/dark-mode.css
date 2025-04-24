@@ -1,0 +1,60 @@
+/* Dark Theme Colors */
+body[data-theme="dark"] {
+  --primary-color: #8677de;
+  --primary-light: #a18eff;
+  --secondary-color: #ff8585;
+  --accent-color: #4fe9f5;
+  --text-color: #e0e0e0;
+  --text-light: #b0b0b0;
+  --bg-color: #121212;
+  --card-bg: rgba(30, 30, 30, 0.7);
+  --card-border: rgba(50, 50, 50, 0.9);
+  --card-shadow: rgba(0, 0, 0, 0.3);
+  --navbar-bg: rgba(25, 25, 25, 0.8);
+  --gradient-1: linear-gradient(135deg, #8677de 0%, #4fe9f5 100%);
+  --gradient-2: linear-gradient(135deg, #ff8585 0%, #ffd073 100%);
+  --overlay-color: rgba(18, 18, 18, 0.3);
+  --shape-color-1: rgba(134, 119, 222, 0.15);
+  --shape-color-2: rgba(79, 233, 245, 0.15);
+  --shape-color-3: rgba(255, 133, 133, 0.15);
+  --shape-color-4: rgba(255, 208, 115, 0.15);
+}
+
+/* Dark theme adjustments */
+body[data-theme="dark"] .glass-card {
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+body[data-theme="dark"] .feature-icon,
+body[data-theme="dark"] .value-icon,
+body[data-theme="dark"] .contact-icon,
+body[data-theme="dark"] .social-icon,
+body[data-theme="dark"] .social-link,
+body[data-theme="dark"] .team-social a {
+  box-shadow: 0 5px 15px rgba(134, 119, 222, 0.2);
+}
+
+body[data-theme="dark"] .navbar-toggler-icon {
+  filter: invert(1);
+}
+
+body[data-theme="dark"] .placeholder-logo {
+  color: var(--text-color);
+}
+
+body[data-theme="dark"] .contact-form .form-control {
+  background: rgba(50, 50, 50, 0.5);
+  border-color: rgba(134, 119, 222, 0.3);
+}
+
+body[data-theme="dark"] .contact-form .form-control:focus {
+  box-shadow: 0 0 0 3px rgba(134, 119, 222, 0.3);
+}
+
+body[data-theme="dark"] .placeholder-map {
+  background: linear-gradient(135deg, rgba(134, 119, 222, 0.2) 0%, rgba(79, 233, 245, 0.2) 100%);
+}
+
+body[data-theme="dark"] .footer-bottom {
+  border-top-color: rgba(134, 119, 222, 0.3);
+}
