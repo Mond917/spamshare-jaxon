@@ -1,0 +1,425 @@
+{% extends 'base.html' %}
+
+{% block title %}Facebook Share Tool{% endblock %}
+
+{% block extra_head %}
+<style>
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+  }
+  .nav-tabs .nav-link.active {
+    background: var(--gradient-1);
+    color: white;
+  }
+  .results-container {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .result-item {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+  }
+  .result-success {
+    background: rgba(39, 174, 96, 0.2);
+    border-left: 4px solid #27ae60;
+  }
+  .result-error {
+    background: rgba(231, 76, 60, 0.2);
+    border-left: 4px solid #e74c3c;
+  }
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .share-form .glass-card {
+    padding: 30px;
+  }
+  .progress-bar-container {
+    height: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    margin: 20px 0;
+  }
+  .progress-bar {
+    height: 100%;
+    background: var(--gradient-1);
+    border-radius: 5px;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  #statusMessage {
+    font-size: 14px;
+    margin: 10px 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header parallax-section" data-speed="0.4">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 mx-auto text-center reveal-element">
+        <h1>Facebook <span class="highlight">Share Tool</span></h1>
+        <p class="lead">Share posts automatically with your Facebook account</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="share-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 mx-auto">
+        <div class="share-form">
+          <div class="glass-card reveal-element">
+            <!-- Tab Navigation -->
+            <ul class="nav nav-tabs mb-4" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="cookie-tab" data-bs-toggle="tab" data-bs-target="#cookie-tab-pane" type="button" role="tab" aria-controls="cookie-tab-pane" aria-selected="true">Cookie</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="appstate-tab" data-bs-toggle="tab" data-bs-target="#appstate-tab-pane" type="button" role="tab" aria-controls="appstate-tab-pane" aria-selected="false">Appstate</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-tab-pane" type="button" role="tab" aria-controls="login-tab-pane" aria-selected="false">Login</button>
+              </li>
+            </ul>
+            
+            <!-- Tab Content -->
+            <div class="tab-content" id="share-tab-content">
+              <!-- Cookie Tab -->
+              <div class="tab-content active" id="cookie-tab-pane">
+                <form id="cookie-form" class="share-form-content">
+                  <input type="hidden" name="share_type" value="cookie">
+                  
+                  <div class="form-group">
+                    <label for="cookie">Facebook Cookie</label>
+                    <textarea id="cookie" name="cookie" class="form-control" rows="5" placeholder="Paste your Facebook cookie here" required></textarea>
+                    <div class="form-focus-effect"></div>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="post_url_cookie">Post URL</label>
+                    <input type="url" id="post_url_cookie" name="post_url" class="form-control" placeholder="https://www.facebook.com/..." required>
+                    <div class="form-focus-effect"></div>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="count_cookie">Share Count</label>
+                        <input type="number" id="count_cookie" name="count" class="form-control" min="1" max="1000" value="1" required>
+                        <div class="form-focus-effect"></div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="delay_cookie">Delay (seconds)</label>
+                        <input type="number" id="delay_cookie" name="delay" class="form-control" min="0" max="60" value="0" required>
+                        <div class="form-focus-effect"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button type="submit" class="btn btn-primary btn-glow w-100">
+                    <span class="btn-text">Start Sharing</span>
+                    <span class="btn-icon"><i class="fas fa-share"></i></span>
+                  </button>
+                </form>
+              </div>
+              
+              <!-- Appstate Tab -->
+              <div class="tab-content" id="appstate-tab-pane">
+                <form id="appstate-form" class="share-form-content">
+                  <input type="hidden" name="share_type" value="appstate">
+                  
+                  <div class="form-group">
+                    <label for="appstate">Facebook Appstate JSON</label>
+                    <textarea id="appstate" name="appstate" class="form-control" rows="5" placeholder="Paste your Facebook appstate JSON here" required></textarea>
+                    <div class="form-focus-effect"></div>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="post_url_appstate">Post URL</label>
+                    <input type="url" id="post_url_appstate" name="post_url" class="form-control" placeholder="https://www.facebook.com/..." required>
+                    <div class="form-focus-effect"></div>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="count_appstate">Share Count</label>
+                        <input type="number" id="count_appstate" name="count" class="form-control" min="1" max="1000" value="1" required>
+                        <div class="form-focus-effect"></div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="delay_appstate">Delay (seconds)</label>
+                        <input type="number" id="delay_appstate" name="delay" class="form-control" min="0" max="60" value="0" required>
+                        <div class="form-focus-effect"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button type="submit" class="btn btn-primary btn-glow w-100">
+                    <span class="btn-text">Start Sharing</span>
+                    <span class="btn-icon"><i class="fas fa-share"></i></span>
+                  </button>
+                </form>
+              </div>
+              
+              <!-- Login Tab -->
+              <div class="tab-content" id="login-tab-pane">
+                <form id="login-form" class="share-form-content">
+                  <input type="hidden" name="share_type" value="login">
+                  
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="username">Facebook Username/Email</label>
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Username or Email" required>
+                        <div class="form-focus-effect"></div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
+                        <div class="form-focus-effect"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="post_url_login">Post URL</label>
+                    <input type="url" id="post_url_login" name="post_url" class="form-control" placeholder="https://www.facebook.com/..." required>
+                    <div class="form-focus-effect"></div>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="count_login">Share Count</label>
+                        <input type="number" id="count_login" name="count" class="form-control" min="1" max="1000" value="1" required>
+                        <div class="form-focus-effect"></div>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-group">
+                        <label for="delay_login">Delay (seconds)</label>
+                        <input type="number" id="delay_login" name="delay" class="form-control" min="0" max="60" value="0" required>
+                        <div class="form-focus-effect"></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button type="submit" class="btn btn-primary btn-glow w-100">
+                    <span class="btn-text">Start Sharing</span>
+                    <span class="btn-icon"><i class="fas fa-share"></i></span>
+                  </button>
+                </form>
+              </div>
+            </div>
+            
+            <!-- Progress and Results -->
+            <div id="results-section" style="display: none;" class="mt-4">
+              <h4>Share Progress</h4>
+              <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar"></div>
+              </div>
+              <p id="statusMessage"></p>
+              
+              <div id="results-container" class="results-container mt-4">
+                <!-- Results will be added here dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="info-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 mx-auto">
+        <div class="glass-card reveal-element">
+          <h3>How It Works</h3>
+          <p>This tool allows you to automatically share Facebook posts using your account credentials through three different methods:</p>
+          
+          <div class="row mt-4">
+            <div class="col-md-4">
+              <div class="info-item">
+                <div class="info-icon">
+                  <i class="fas fa-cookie"></i>
+                </div>
+                <h4>Cookie Method</h4>
+                <p>Use your Facebook cookie to share posts without needing to enter your credentials directly.</p>
+              </div>
+            </div>
+            
+            <div class="col-md-4">
+              <div class="info-item">
+                <div class="info-icon">
+                  <i class="fas fa-code"></i>
+                </div>
+                <h4>Appstate Method</h4>
+                <p>Use a JSON appstate format that contains your authenticated session data.</p>
+              </div>
+            </div>
+            
+            <div class="col-md-4">
+              <div class="info-item">
+                <div class="info-icon">
+                  <i class="fas fa-sign-in-alt"></i>
+                </div>
+                <h4>Login Method</h4>
+                <p>Enter your Facebook credentials directly to log in and share posts automatically.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="alert alert-info mt-4">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Note:</strong> This tool is for educational purposes only. Please use responsibly and in accordance with Facebook's terms of service.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching functionality
+    const tabButtons = document.querySelectorAll('.nav-link');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // Remove active class from all tabs
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        
+        // Add active class to clicked tab
+        button.classList.add('active');
+        const tabId = button.getAttribute('data-bs-target').replace('#', '');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+    
+    // Form submission handlers
+    const forms = [
+      { id: 'cookie-form', type: 'cookie' },
+      { id: 'appstate-form', type: 'appstate' },
+      { id: 'login-form', type: 'login' }
+    ];
+    
+    forms.forEach(form => {
+      const formElement = document.getElementById(form.id);
+      
+      formElement.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Show results section
+        document.getElementById('results-section').style.display = 'block';
+        document.getElementById('results-container').innerHTML = '';
+        document.getElementById('statusMessage').textContent = 'Initializing...';
+        document.getElementById('progress-bar').style.width = '0%';
+        
+        // Get form data
+        const formData = new FormData(formElement);
+        
+        // Disable form
+        const submitButton = formElement.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.querySelector('.btn-text').textContent;
+        submitButton.disabled = true;
+        submitButton.querySelector('.btn-text').textContent = 'Processing...';
+        
+        // Send AJAX request
+        fetch('/share', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          // Update status
+          if (data.success_count > 0) {
+            document.getElementById('statusMessage').textContent = `Successfully shared ${data.success_count} times`;
+          } else {
+            document.getElementById('statusMessage').textContent = 'Share operation failed';
+          }
+          
+          // Calculate progress percentage
+          const count = parseInt(formData.get('count'));
+          const percentage = (data.success_count / count) * 100;
+          document.getElementById('progress-bar').style.width = `${percentage}%`;
+          
+          // Display results
+          if (data.results && data.results.length > 0) {
+            data.results.forEach(result => {
+              const resultItem = document.createElement('div');
+              resultItem.className = `result-item ${result.status === 'success' ? 'result-success' : 'result-error'}`;
+              resultItem.innerHTML = `<p>${result.message}</p>`;
+              document.getElementById('results-container').appendChild(resultItem);
+            });
+          } else if (data.message) {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result-item result-error';
+            resultItem.innerHTML = `<p>${data.message}</p>`;
+            document.getElementById('results-container').appendChild(resultItem);
+          }
+          
+          // Re-enable form
+          submitButton.disabled = false;
+          submitButton.querySelector('.btn-text').textContent = originalButtonText;
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          document.getElementById('statusMessage').textContent = 'Error processing request';
+          
+          const resultItem = document.createElement('div');
+          resultItem.className = 'result-item result-error';
+          resultItem.innerHTML = `<p>Server error: ${error.message}</p>`;
+          document.getElementById('results-container').appendChild(resultItem);
+          
+          // Re-enable form
+          submitButton.disabled = false;
+          submitButton.querySelector('.btn-text').textContent = originalButtonText;
+        });
+      });
+    });
+    
+    // Style the info items
+    const infoItems = document.querySelectorAll('.info-item');
+    infoItems.forEach(item => {
+      item.classList.add('glass-card');
+      item.style.padding = '20px';
+      item.style.height = '100%';
+      item.style.textAlign = 'center';
+      
+      const icon = item.querySelector('.info-icon');
+      if (icon) {
+        icon.style.width = '60px';
+        icon.style.height = '60px';
+        icon.style.background = 'var(--gradient-1)';
+        icon.style.borderRadius = '50%';
+        icon.style.display = 'flex';
+        icon.style.alignItems = 'center';
+        icon.style.justifyContent = 'center';
+        icon.style.margin = '0 auto 15px';
+        icon.style.color = 'white';
+        icon.style.fontSize = '1.5rem';
+        icon.style.boxShadow = '0 10px 20px rgba(106, 90, 205, 0.3)';
+      }
+    });
+  });
+</script>
+{% endblock %}
