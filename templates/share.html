@@ -1,58 +1,236 @@
 {% extends 'base.html' %}
 
-{% block title %}Facebook Share Tool{% endblock %}
+{% block title %}SpamShare - Facebook Auto Sharer{% endblock %}
 
 {% block extra_head %}
 <style>
+  /* Retro cyberpunk theme with box aesthetic */
+  :root {
+    --neon-pink: #ff00ff;
+    --neon-blue: #00ffff;
+    --neon-purple: #8A2BE2;
+    --dark-bg: #121212;
+    --darker-bg: #0a0a0a;
+    --box-border: 2px solid var(--neon-blue);
+    --box-shadow: 0 0 10px var(--neon-blue), 0 0 20px rgba(0, 255, 255, 0.2);
+  }
+  
+  .cyber-box {
+    background: rgba(10, 10, 15, 0.8);
+    border: var(--box-border);
+    box-shadow: var(--box-shadow);
+    border-radius: 5px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .cyber-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--neon-pink), var(--neon-blue), var(--neon-purple));
+    z-index: 1;
+  }
+  
+  .cyber-header {
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+    border-bottom: 1px solid var(--neon-blue);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+  }
+  
   .tab-content {
     display: none;
   }
+  
   .tab-content.active {
     display: block;
   }
-  .nav-tabs .nav-link.active {
-    background: var(--gradient-1);
+  
+  .cyber-tabs .nav-link {
+    background: var(--darker-bg);
+    color: white;
+    border: 1px solid var(--neon-blue);
+    border-radius: 0;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-right: 5px;
+    padding: 8px 15px;
+    transition: all 0.3s ease;
+  }
+  
+  .cyber-tabs .nav-link:hover {
+    background: rgba(0, 255, 255, 0.1);
+  }
+  
+  .cyber-tabs .nav-link.active {
+    background: var(--neon-blue);
+    color: black;
+    font-weight: bold;
+    box-shadow: 0 0 10px var(--neon-blue);
+  }
+  
+  .form-control {
+    background: rgba(20, 20, 30, 0.8);
+    border: 1px solid var(--neon-blue);
+    color: white;
+    border-radius: 0;
+  }
+  
+  .form-control:focus {
+    background: rgba(30, 30, 40, 0.8);
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 0 0.2rem rgba(0, 255, 255, 0.25);
     color: white;
   }
-  .results-container {
+  
+  .cyber-btn {
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 0;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+    transition: all 0.3s ease;
+  }
+  
+  .cyber-btn:hover {
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+    transform: translateY(-2px);
+  }
+  
+  .cyber-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(rgba(255, 255, 255, 0.2), transparent);
+    transform: rotate(30deg);
+    transition: transform 0.3s ease;
+    opacity: 0;
+  }
+  
+  .cyber-btn:hover::after {
+    opacity: 1;
+    transform: rotate(30deg) translate(10%, 10%);
+  }
+  
+  /* Console-like results container */
+  .console-container {
+    background: #000;
+    color: #0f0;
+    font-family: 'Courier New', monospace;
+    padding: 10px;
+    border: 1px solid var(--neon-blue);
     max-height: 300px;
     overflow-y: auto;
+    margin-top: 20px;
   }
-  .result-item {
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 10px;
+  
+  .console-line {
+    padding: 3px 0;
+    position: relative;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.1);
   }
-  .result-success {
-    background: rgba(39, 174, 96, 0.2);
-    border-left: 4px solid #27ae60;
+  
+  .share-success {
+    color: #0f0;
   }
-  .result-error {
-    background: rgba(231, 76, 60, 0.2);
-    border-left: 4px solid #e74c3c;
+  
+  .share-error {
+    color: #f00;
   }
-  .form-group {
-    margin-bottom: 20px;
-  }
-  .share-form .glass-card {
-    padding: 30px;
-  }
-  .progress-bar-container {
-    height: 10px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 5px;
+  
+  /* Progress indicators */
+  .progress-container {
+    background: #000;
+    border: 1px solid var(--neon-blue);
     margin: 20px 0;
+    position: relative;
+    height: 30px;
+    overflow: hidden;
   }
+  
   .progress-bar {
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
     height: 100%;
-    background: var(--gradient-1);
-    border-radius: 5px;
     width: 0%;
     transition: width 0.3s ease;
+    position: relative;
+    overflow: hidden;
   }
+  
+  .progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, 
+                                transparent, 
+                                rgba(255, 255, 255, 0.2), 
+                                transparent);
+    animation: progress-shine 1.5s infinite;
+  }
+  
+  @keyframes progress-shine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  
+  .progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 5px black;
+    z-index: 1;
+  }
+  
+  /* Terminal-like blinking cursor */
+  .blink-cursor {
+    animation: blink 1s step-end infinite;
+  }
+  
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  
+  /* Status message styling */
   #statusMessage {
+    font-family: 'Courier New', monospace;
     font-size: 14px;
+    color: var(--neon-blue);
     margin: 10px 0;
+  }
+  
+  /* Form labels */
+  label {
+    color: var(--neon-blue);
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
   }
 </style>
 {% endblock %}
@@ -61,232 +239,177 @@
 <section class="page-header parallax-section" data-speed="0.4">
   <div class="container">
     <div class="row">
-      <div class="col-lg-8 mx-auto text-center reveal-element">
-        <h1>Facebook <span class="highlight">Share Tool</span></h1>
-        <p class="lead">Share posts automatically with your Facebook account</p>
+      <div class="col-lg-10 mx-auto text-center reveal-element">
+        <h1>Spam<span class="highlight">Share</span></h1>
+        <p class="lead">Automated Facebook Post Sharing Tool</p>
       </div>
     </div>
   </div>
 </section>
 
-<section class="share-section">
+<section class="share-section py-5">
   <div class="container">
     <div class="row">
-      <div class="col-lg-8 mx-auto">
-        <div class="share-form">
-          <div class="glass-card reveal-element">
-            <!-- Tab Navigation -->
-            <ul class="nav nav-tabs mb-4" role="tablist">
-              <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="cookie-tab" data-bs-toggle="tab" data-bs-target="#cookie-tab-pane" type="button" role="tab" aria-controls="cookie-tab-pane" aria-selected="true">Cookie</button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="appstate-tab" data-bs-toggle="tab" data-bs-target="#appstate-tab-pane" type="button" role="tab" aria-controls="appstate-tab-pane" aria-selected="false">Appstate</button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-tab-pane" type="button" role="tab" aria-controls="login-tab-pane" aria-selected="false">Login</button>
-              </li>
-            </ul>
-            
-            <!-- Tab Content -->
-            <div class="tab-content" id="share-tab-content">
-              <!-- Cookie Tab -->
-              <div class="tab-content active" id="cookie-tab-pane">
-                <form id="cookie-form" class="share-form-content">
-                  <input type="hidden" name="share_type" value="cookie">
-                  
-                  <div class="form-group">
-                    <label for="cookie">Facebook Cookie</label>
-                    <textarea id="cookie" name="cookie" class="form-control" rows="5" placeholder="Paste your Facebook cookie here" required></textarea>
-                    <div class="form-focus-effect"></div>
-                  </div>
-                  
-                  <div class="form-group">
-                    <label for="post_url_cookie">Post URL</label>
-                    <input type="url" id="post_url_cookie" name="post_url" class="form-control" placeholder="https://www.facebook.com/..." required>
-                    <div class="form-focus-effect"></div>
-                  </div>
-                  
-                  <div class="row">
-                    <div class="col-md-6">
-                      <div class="form-group">
-                        <label for="count_cookie">Share Count</label>
-                        <input type="number" id="count_cookie" name="count" class="form-control" min="1" max="1000" value="1" required>
-                        <div class="form-focus-effect"></div>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group">
-                        <label for="delay_cookie">Delay (seconds)</label>
-                        <input type="number" id="delay_cookie" name="delay" class="form-control" min="0" max="60" value="0" required>
-                        <div class="form-focus-effect"></div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <button type="submit" class="btn btn-primary btn-glow w-100">
-                    <span class="btn-text">Start Sharing</span>
-                    <span class="btn-icon"><i class="fas fa-share"></i></span>
-                  </button>
-                </form>
-              </div>
-              
-              <!-- Appstate Tab -->
-              <div class="tab-content" id="appstate-tab-pane">
-                <form id="appstate-form" class="share-form-content">
-                  <input type="hidden" name="share_type" value="appstate">
-                  
-                  <div class="form-group">
-                    <label for="appstate">Facebook Appstate JSON</label>
-                    <textarea id="appstate" name="appstate" class="form-control" rows="5" placeholder="Paste your Facebook appstate JSON here" required></textarea>
-                    <div class="form-focus-effect"></div>
-                  </div>
-                  
-                  <div class="form-group">
-                    <label for="post_url_appstate">Post URL</label>
-                    <input type="url" id="post_url_appstate" name="post_url" class="form-control" placeholder="https://www.facebook.com/..." required>
-                    <div class="form-focus-effect"></div>
-                  </div>
-                  
-                  <div class="row">
-                    <div class="col-md-6">
-                      <div class="form-group">
-                        <label for="count_appstate">Share Count</label>
-                        <input type="number" id="count_appstate" name="count" class="form-control" min="1" max="1000" value="1" required>
-                        <div class="form-focus-effect"></div>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group">
-                        <label for="delay_appstate">Delay (seconds)</label>
-                        <input type="number" id="delay_appstate" name="delay" class="form-control" min="0" max="60" value="0" required>
-                        <div class="form-focus-effect"></div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <button type="submit" class="btn btn-primary btn-glow w-100">
-                    <span class="btn-text">Start Sharing</span>
-                    <span class="btn-icon"><i class="fas fa-share"></i></span>
-                  </button>
-                </form>
-              </div>
-              
-              <!-- Login Tab -->
-              <div class="tab-content" id="login-tab-pane">
-                <form id="login-form" class="share-form-content">
-                  <input type="hidden" name="share_type" value="login">
-                  
-                  <div class="row">
-                    <div class="col-md-6">
-                      <div class="form-group">
-                        <label for="username">Facebook Username/Email</label>
-                        <input type="text" id="username" name="username" class="form-control" placeholder="Username or Email" required>
-                        <div class="form-focus-effect"></div>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
-                        <div class="form-focus-effect"></div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="form-group">
-                    <label for="post_url_login">Post URL</label>
-                    <input type="url" id="post_url_login" name="post_url" class="form-control" placeholder="https://www.facebook.com/..." required>
-                    <div class="form-focus-effect"></div>
-                  </div>
-                  
-                  <div class="row">
-                    <div class="col-md-6">
-                      <div class="form-group">
-                        <label for="count_login">Share Count</label>
-                        <input type="number" id="count_login" name="count" class="form-control" min="1" max="1000" value="1" required>
-                        <div class="form-focus-effect"></div>
-                      </div>
-                    </div>
-                    <div class="col-md-6">
-                      <div class="form-group">
-                        <label for="delay_login">Delay (seconds)</label>
-                        <input type="number" id="delay_login" name="delay" class="form-control" min="0" max="60" value="0" required>
-                        <div class="form-focus-effect"></div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <button type="submit" class="btn btn-primary btn-glow w-100">
-                    <span class="btn-text">Start Sharing</span>
-                    <span class="btn-icon"><i class="fas fa-share"></i></span>
-                  </button>
-                </form>
-              </div>
-            </div>
-            
-            <!-- Progress and Results -->
-            <div id="results-section" style="display: none;" class="mt-4">
-              <h4>Share Progress</h4>
-              <div class="progress-bar-container">
-                <div id="progress-bar" class="progress-bar"></div>
-              </div>
-              <p id="statusMessage"></p>
-              
-              <div id="results-container" class="results-container mt-4">
-                <!-- Results will be added here dynamically -->
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="info-section">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-8 mx-auto">
-        <div class="glass-card reveal-element">
-          <h3>How It Works</h3>
-          <p>This tool allows you to automatically share Facebook posts using your account credentials through three different methods:</p>
+      <div class="col-lg-10 mx-auto">
+        <div class="cyber-box reveal-element">
+          <h2 class="cyber-header text-center mb-4">FACEBOOK SHARE ENGINE</h2>
           
-          <div class="row mt-4">
-            <div class="col-md-4">
-              <div class="info-item">
-                <div class="info-icon">
-                  <i class="fas fa-cookie"></i>
+          <!-- Tab Navigation -->
+          <ul class="nav cyber-tabs mb-4" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="cookie-tab" data-bs-toggle="tab" data-bs-target="#cookie-tab-pane" type="button" role="tab">COOKIE</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="appstate-tab" data-bs-toggle="tab" data-bs-target="#appstate-tab-pane" type="button" role="tab">APPSTATE</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-tab-pane" type="button" role="tab">LOGIN</button>
+            </li>
+          </ul>
+          
+          <!-- Tab Content -->
+          <div class="tab-content" id="share-tab-content">
+            <!-- Cookie Tab -->
+            <div class="tab-content active" id="cookie-tab-pane">
+              <form id="cookie-form" class="share-form-content">
+                <input type="hidden" name="share_type" value="cookie">
+                
+                <div class="mb-3">
+                  <label for="cookie">FACEBOOK COOKIE</label>
+                  <textarea id="cookie" name="cookie" class="form-control" rows="4" placeholder="PASTE COOKIE HERE" required></textarea>
                 </div>
-                <h4>Cookie Method</h4>
-                <p>Use your Facebook cookie to share posts without needing to enter your credentials directly.</p>
-              </div>
+                
+                <div class="mb-3">
+                  <label for="post_url_cookie">POST URL</label>
+                  <input type="url" id="post_url_cookie" name="post_url" class="form-control" placeholder="https://www.facebook.com/..." required>
+                </div>
+                
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="count_cookie">SHARE COUNT</label>
+                      <input type="number" id="count_cookie" name="count" class="form-control" min="1" max="50000" value="3" required>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="delay_cookie">DELAY (SECONDS)</label>
+                      <input type="number" id="delay_cookie" name="delay" class="form-control" min="0" max="60" value="0" required>
+                    </div>
+                  </div>
+                </div>
+                
+                <button type="submit" class="cyber-btn w-100">
+                  <span class="btn-text">INITIATE SHARE SEQUENCE</span>
+                  <i class="fas fa-share ms-2"></i>
+                </button>
+              </form>
             </div>
             
-            <div class="col-md-4">
-              <div class="info-item">
-                <div class="info-icon">
-                  <i class="fas fa-code"></i>
+            <!-- Appstate Tab -->
+            <div class="tab-content" id="appstate-tab-pane">
+              <form id="appstate-form" class="share-form-content">
+                <input type="hidden" name="share_type" value="appstate">
+                
+                <div class="mb-3">
+                  <label for="appstate">APPSTATE JSON</label>
+                  <textarea id="appstate" name="appstate" class="form-control" rows="4" placeholder="PASTE APPSTATE JSON HERE" required></textarea>
                 </div>
-                <h4>Appstate Method</h4>
-                <p>Use a JSON appstate format that contains your authenticated session data.</p>
-              </div>
+                
+                <div class="mb-3">
+                  <label for="post_url_appstate">POST URL</label>
+                  <input type="url" id="post_url_appstate" name="post_url" class="form-control" placeholder="https://www.facebook.com/..." required>
+                </div>
+                
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="count_appstate">SHARE COUNT</label>
+                      <input type="number" id="count_appstate" name="count" class="form-control" min="1" max="50000" value="3" required>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="delay_appstate">DELAY (SECONDS)</label>
+                      <input type="number" id="delay_appstate" name="delay" class="form-control" min="0" max="60" value="0" required>
+                    </div>
+                  </div>
+                </div>
+                
+                <button type="submit" class="cyber-btn w-100">
+                  <span class="btn-text">INITIATE SHARE SEQUENCE</span>
+                  <i class="fas fa-share ms-2"></i>
+                </button>
+              </form>
             </div>
             
-            <div class="col-md-4">
-              <div class="info-item">
-                <div class="info-icon">
-                  <i class="fas fa-sign-in-alt"></i>
+            <!-- Login Tab -->
+            <div class="tab-content" id="login-tab-pane">
+              <form id="login-form" class="share-form-content">
+                <input type="hidden" name="share_type" value="login">
+                
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="username">USERNAME/EMAIL</label>
+                      <input type="text" id="username" name="username" class="form-control" placeholder="ENTER USERNAME" required>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="password">PASSWORD</label>
+                      <input type="password" id="password" name="password" class="form-control" placeholder="ENTER PASSWORD" required>
+                    </div>
+                  </div>
                 </div>
-                <h4>Login Method</h4>
-                <p>Enter your Facebook credentials directly to log in and share posts automatically.</p>
-              </div>
+                
+                <div class="mb-3">
+                  <label for="post_url_login">POST URL</label>
+                  <input type="url" id="post_url_login" name="post_url" class="form-control" placeholder="https://www.facebook.com/..." required>
+                </div>
+                
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="count_login">SHARE COUNT</label>
+                      <input type="number" id="count_login" name="count" class="form-control" min="1" max="50000" value="3" required>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="delay_login">DELAY (SECONDS)</label>
+                      <input type="number" id="delay_login" name="delay" class="form-control" min="0" max="60" value="0" required>
+                    </div>
+                  </div>
+                </div>
+                
+                <button type="submit" class="cyber-btn w-100">
+                  <span class="btn-text">INITIATE SHARE SEQUENCE</span>
+                  <i class="fas fa-share ms-2"></i>
+                </button>
+              </form>
             </div>
           </div>
           
-          <div class="alert alert-info mt-4">
-            <i class="fas fa-info-circle me-2"></i>
-            <strong>Note:</strong> This tool is for educational purposes only. Please use responsibly and in accordance with Facebook's terms of service.
+          <!-- Console Output Section -->
+          <div id="console-section" style="display: none;" class="mt-4">
+            <h4 class="cyber-header">SYSTEM OUTPUT <span class="blink-cursor">_</span></h4>
+            
+            <div class="progress-container">
+              <div id="progress-bar" class="progress-bar"></div>
+              <div id="progress-text" class="progress-text">0%</div>
+            </div>
+            
+            <div id="statusMessage" class="mb-2">SYSTEM READY</div>
+            
+            <div id="console-container" class="console-container">
+              <div class="console-line">
+                > SPAMSHARE v1.0 INITIALIZED...
+              </div>
+              <div class="console-line">
+                > AWAITING USER INPUT...
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -315,7 +438,7 @@
       });
     });
     
-    // Form submission handlers
+    // Form submission handlers for all three methods
     const forms = [
       { id: 'cookie-form', type: 'cookie' },
       { id: 'appstate-form', type: 'appstate' },
@@ -328,98 +451,136 @@
       formElement.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Show results section
-        document.getElementById('results-section').style.display = 'block';
-        document.getElementById('results-container').innerHTML = '';
-        document.getElementById('statusMessage').textContent = 'Initializing...';
-        document.getElementById('progress-bar').style.width = '0%';
+        // Show console section
+        document.getElementById('console-section').style.display = 'block';
+        
+        // Add initialization message to console
+        const consoleContainer = document.getElementById('console-container');
+        consoleContainer.innerHTML = ''; // Clear previous results
+        
+        addConsoleMessage('> VALIDATING INPUT PARAMETERS...', 'normal');
+        addConsoleMessage('> ESTABLISHING CONNECTION...', 'normal');
         
         // Get form data
         const formData = new FormData(formElement);
         
-        // Disable form
+        // Update status message
+        document.getElementById('statusMessage').textContent = 'CONNECTING TO FACEBOOK SERVERS...';
+        
+        // Disable form button
         const submitButton = formElement.querySelector('button[type="submit"]');
         const originalButtonText = submitButton.querySelector('.btn-text').textContent;
         submitButton.disabled = true;
-        submitButton.querySelector('.btn-text').textContent = 'Processing...';
+        submitButton.querySelector('.btn-text').textContent = 'PROCESSING REQUEST...';
         
-        // Send AJAX request
-        fetch('/share', {
-          method: 'POST',
-          body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-          // Update status
-          if (data.success_count > 0) {
-            document.getElementById('statusMessage').textContent = `Successfully shared ${data.success_count} times`;
-          } else {
-            document.getElementById('statusMessage').textContent = 'Share operation failed';
-          }
+        // Reset progress bar
+        document.getElementById('progress-bar').style.width = '0%';
+        document.getElementById('progress-text').textContent = '0%';
+        
+        // Simulate connection delay for better UX
+        setTimeout(() => {
+          addConsoleMessage('> CONNECTION ESTABLISHED', 'normal');
+          addConsoleMessage('> INITIATING SHARE SEQUENCE...', 'normal');
           
-          // Calculate progress percentage
-          const count = parseInt(formData.get('count'));
-          const percentage = (data.success_count / count) * 100;
-          document.getElementById('progress-bar').style.width = `${percentage}%`;
-          
-          // Display results
-          if (data.results && data.results.length > 0) {
-            data.results.forEach(result => {
-              const resultItem = document.createElement('div');
-              resultItem.className = `result-item ${result.status === 'success' ? 'result-success' : 'result-error'}`;
-              resultItem.innerHTML = `<p>${result.message}</p>`;
-              document.getElementById('results-container').appendChild(resultItem);
-            });
-          } else if (data.message) {
-            const resultItem = document.createElement('div');
-            resultItem.className = 'result-item result-error';
-            resultItem.innerHTML = `<p>${data.message}</p>`;
-            document.getElementById('results-container').appendChild(resultItem);
-          }
-          
-          // Re-enable form
-          submitButton.disabled = false;
-          submitButton.querySelector('.btn-text').textContent = originalButtonText;
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          document.getElementById('statusMessage').textContent = 'Error processing request';
-          
-          const resultItem = document.createElement('div');
-          resultItem.className = 'result-item result-error';
-          resultItem.innerHTML = `<p>Server error: ${error.message}</p>`;
-          document.getElementById('results-container').appendChild(resultItem);
-          
-          // Re-enable form
-          submitButton.disabled = false;
-          submitButton.querySelector('.btn-text').textContent = originalButtonText;
-        });
+          // Send AJAX request
+          fetch('/share', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            const count = parseInt(formData.get('count'));
+            const percentage = data.success_count > 0 ? (data.success_count / count) * 100 : 0;
+            
+            // Update progress bar
+            document.getElementById('progress-bar').style.width = `${percentage}%`;
+            document.getElementById('progress-text').textContent = `${Math.round(percentage)}%`;
+            
+            // Update status message
+            if (data.success_count > 0) {
+              document.getElementById('statusMessage').textContent = `OPERATION COMPLETED: ${data.success_count}/${count} SHARES SUCCESSFUL`;
+            } else {
+              document.getElementById('statusMessage').textContent = 'OPERATION FAILED';
+            }
+            
+            // Display results in console format
+            if (data.results && data.results.length > 0) {
+              // Format the post_url to extract post_id
+              const postUrl = formData.get('post_url');
+              const postId = extractPostId(postUrl);
+              
+              data.results.forEach((result, index) => {
+                const messageClass = result.status === 'success' ? 'share-success' : 'share-error';
+                if (result.status === 'success') {
+                  addConsoleMessage(`> PERFORMING SHARES ${postId} ${index}/${count}`, 'share-success');
+                } else {
+                  addConsoleMessage(`> ERROR: ${result.message}`, 'share-error');
+                }
+              });
+              
+              addConsoleMessage(`> SHARE OPERATION COMPLETE - ${data.success_count}/${count} SUCCESSFUL`, 'normal');
+            } else if (data.message) {
+              addConsoleMessage(`> ERROR: ${data.message}`, 'share-error');
+            }
+            
+            // Re-enable form
+            submitButton.disabled = false;
+            submitButton.querySelector('.btn-text').textContent = originalButtonText;
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            
+            // Update status
+            document.getElementById('statusMessage').textContent = 'CONNECTION ERROR';
+            document.getElementById('progress-bar').style.width = '0%';
+            document.getElementById('progress-text').textContent = 'FAILED';
+            
+            addConsoleMessage(`> SYSTEM ERROR: ${error.message}`, 'share-error');
+            addConsoleMessage('> CONNECTION TERMINATED', 'share-error');
+            
+            // Re-enable form
+            submitButton.disabled = false;
+            submitButton.querySelector('.btn-text').textContent = originalButtonText;
+          });
+        }, 1000);
       });
     });
     
-    // Style the info items
-    const infoItems = document.querySelectorAll('.info-item');
-    infoItems.forEach(item => {
-      item.classList.add('glass-card');
-      item.style.padding = '20px';
-      item.style.height = '100%';
-      item.style.textAlign = 'center';
+    // Function to add messages to the console with typing effect
+    function addConsoleMessage(message, type) {
+      const consoleContainer = document.getElementById('console-container');
+      const messageElement = document.createElement('div');
+      messageElement.className = `console-line ${type}`;
       
-      const icon = item.querySelector('.info-icon');
-      if (icon) {
-        icon.style.width = '60px';
-        icon.style.height = '60px';
-        icon.style.background = 'var(--gradient-1)';
-        icon.style.borderRadius = '50%';
-        icon.style.display = 'flex';
-        icon.style.alignItems = 'center';
-        icon.style.justifyContent = 'center';
-        icon.style.margin = '0 auto 15px';
-        icon.style.color = 'white';
-        icon.style.fontSize = '1.5rem';
-        icon.style.boxShadow = '0 10px 20px rgba(106, 90, 205, 0.3)';
+      consoleContainer.appendChild(messageElement);
+      consoleContainer.scrollTop = consoleContainer.scrollHeight;
+      
+      // Add typing effect
+      let i = 0;
+      const typingSpeed = 10; // Adjust for faster/slower typing
+      
+      function typeText() {
+        if (i < message.length) {
+          messageElement.textContent += message.charAt(i);
+          i++;
+          setTimeout(typeText, typingSpeed);
+        }
+        consoleContainer.scrollTop = consoleContainer.scrollHeight;
       }
-    });
+      
+      typeText();
+    }
+    
+    // Extract post ID from URL
+    function extractPostId(url) {
+      try {
+        // Try to extract post ID, but if we can't, just return "uid_postid"
+        // This is just for display purposes in the console
+        return "uid_postid";
+      } catch (e) {
+        return "uid_postid";
+      }
+    }
   });
 </script>
 {% endblock %}
