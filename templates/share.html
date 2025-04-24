@@ -225,6 +225,33 @@
   .tab-content.active {
     display: block;
   }
+  
+  /* Full-screen overlay for process view */
+  .process-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .process-container {
+    width: 90%;
+    max-width: 800px;
+  }
+  
+  /* Cookie generator styles */
+  #cookie-generator-form {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: rgba(10, 10, 15, 0.8);
+    border: 1px solid var(--neon-blue);
+  }
 </style>
 {% endblock %}
 
@@ -244,6 +271,7 @@
         <div class="cyber-tabs">
           <button class="tab-btn active" onclick="openTab(event, 'cookie-tab')">COOKIE</button>
           <button class="tab-btn" onclick="openTab(event, 'appstate-tab')">APPSTATE</button>
+          <button class="tab-btn" onclick="openTab(event, 'generator-tab')">COOKIE GENERATOR</button>
         </div>
         
         <!-- Cookie Tab -->
@@ -314,25 +342,57 @@
           </form>
         </div>
         
-        <!-- Console Output Section -->
-        <div id="console-section" style="display: none;" class="mt-4">
-          <h4 class="cyber-header">SYSTEM OUTPUT <span class="blink-cursor">_</span></h4>
+        <!-- Cookie Generator Tab -->
+        <div id="generator-tab" class="tab-content">
+          <h3 class="cyber-header">FB COOKIE GENERATOR</h3>
+          <p style="color: white; font-family: 'Courier New', monospace;">Generate a Facebook cookie from your credentials</p>
           
-          <div class="progress-container">
-            <div id="progress-bar" class="progress-bar"></div>
-            <div id="progress-text" class="progress-text">0%</div>
-          </div>
-          
-          <div id="statusMessage" class="mb-2">SYSTEM READY</div>
-          
-          <div id="console-container" class="console-container">
-            <div class="console-line">
-              > SPAMSHARE v1.0 INITIALIZED...
+          <form id="cookie-generator-form">
+            <div class="mb-3">
+              <label for="username">FACEBOOK USERNAME/EMAIL</label>
+              <input type="text" id="username" name="username" class="form-control" placeholder="Enter your Facebook username or email" required>
             </div>
-            <div class="console-line">
-              > AWAITING USER INPUT...
+            
+            <div class="mb-3">
+              <label for="password">FACEBOOK PASSWORD</label>
+              <input type="password" id="password" name="password" class="form-control" placeholder="Enter your Facebook password" required>
             </div>
+            
+            <button type="submit" class="neon-button w-100">GENERATE COOKIE</button>
+          </form>
+          
+          <div id="generator-results" style="display:none;" class="mt-3">
+            <h4 class="cyber-header">GENERATED COOKIE</h4>
+            <div class="mb-2">
+              <textarea id="generated-cookie" class="form-control" rows="3" readonly></textarea>
+            </div>
+            <button id="copy-cookie-btn" class="neon-button" onclick="copyGeneratedCookie()">COPY TO CLIPBOARD</button>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Process View Overlay (shows when processing) -->
+<div id="process-overlay" class="process-overlay">
+  <div class="process-container">
+    <div class="cyber-box">
+      <h3 class="cyber-header text-center">PROCESSING <span class="blink-cursor">_</span></h3>
+      
+      <div class="progress-container">
+        <div id="overlay-progress-bar" class="progress-bar"></div>
+        <div id="overlay-progress-text" class="progress-text">0%</div>
+      </div>
+      
+      <div id="overlay-status" class="mb-2 text-center" style="color: var(--neon-blue); font-family: 'Courier New', monospace;">SYSTEM READY</div>
+      
+      <div id="overlay-console" class="console-container">
+        <div class="console-line">
+          > SPAMSHARE v1.0 INITIALIZED...
+        </div>
+        <div class="console-line">
+          > PERFORMING OPERATION...
         </div>
       </div>
     </div>
@@ -361,8 +421,24 @@
     evt.currentTarget.classList.add("active");
   }
 
+  // Function to copy generated cookie to clipboard
+  function copyGeneratedCookie() {
+    const cookieText = document.getElementById('generated-cookie');
+    cookieText.select();
+    document.execCommand('copy');
+    
+    // Visual feedback for copy
+    const copyBtn = document.getElementById('copy-cookie-btn');
+    const originalText = copyBtn.textContent;
+    copyBtn.textContent = 'COPIED!';
+    
+    setTimeout(() => {
+      copyBtn.textContent = originalText;
+    }, 1500);
+  }
+
   document.addEventListener('DOMContentLoaded', function() {
-    // Form submission handlers
+    // Form submission handlers for sharing
     const forms = [
       { id: 'cookie-form', type: 'cookie' },
       { id: 'appstate-form', type: 'appstate' }
@@ -374,36 +450,32 @@
       formElement.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Show console section
-        document.getElementById('console-section').style.display = 'block';
+        // Show the overlay
+        const overlay = document.getElementById('process-overlay');
+        overlay.style.display = 'flex';
         
-        // Add initialization message to console
-        const consoleContainer = document.getElementById('console-container');
-        consoleContainer.innerHTML = ''; // Clear previous results
+        // Clear the overlay console
+        const overlayConsole = document.getElementById('overlay-console');
+        overlayConsole.innerHTML = '';
         
-        addConsoleMessage('> VALIDATING INPUT PARAMETERS...', 'normal');
-        addConsoleMessage('> ESTABLISHING CONNECTION...', 'normal');
+        // Add initialization messages
+        addOverlayMessage('> VALIDATING INPUT PARAMETERS...', 'normal');
+        addOverlayMessage('> ESTABLISHING CONNECTION...', 'normal');
         
         // Get form data
         const formData = new FormData(formElement);
         
         // Update status message
-        document.getElementById('statusMessage').textContent = 'CONNECTING TO FACEBOOK SERVERS...';
-        
-        // Disable form button
-        const submitButton = formElement.querySelector('button[type="submit"]');
-        const originalButtonText = submitButton.textContent;
-        submitButton.disabled = true;
-        submitButton.textContent = 'PROCESSING REQUEST...';
+        document.getElementById('overlay-status').textContent = 'CONNECTING TO FACEBOOK SERVERS...';
         
         // Reset progress bar
-        document.getElementById('progress-bar').style.width = '0%';
-        document.getElementById('progress-text').textContent = '0%';
+        document.getElementById('overlay-progress-bar').style.width = '0%';
+        document.getElementById('overlay-progress-text').textContent = '0%';
         
         // Simulate connection delay for better UX
         setTimeout(() => {
-          addConsoleMessage('> CONNECTION ESTABLISHED', 'normal');
-          addConsoleMessage('> INITIATING SHARE SEQUENCE...', 'normal');
+          addOverlayMessage('> CONNECTION ESTABLISHED', 'normal');
+          addOverlayMessage('> INITIATING SHARE SEQUENCE...', 'normal');
           
           // Send AJAX request
           fetch('/share', {
@@ -422,59 +494,151 @@
             const percentage = data.success_count > 0 ? (data.success_count / count) * 100 : 0;
             
             // Update progress bar
-            document.getElementById('progress-bar').style.width = `${percentage}%`;
-            document.getElementById('progress-text').textContent = `${Math.round(percentage)}%`;
+            document.getElementById('overlay-progress-bar').style.width = `${percentage}%`;
+            document.getElementById('overlay-progress-text').textContent = `${Math.round(percentage)}%`;
             
             // Update status message
             if (data.success_count > 0) {
-              document.getElementById('statusMessage').textContent = `OPERATION COMPLETED: ${data.success_count}/${count} SHARES SUCCESSFUL`;
+              document.getElementById('overlay-status').textContent = `OPERATION COMPLETED: ${data.success_count}/${count} SHARES SUCCESSFUL`;
             } else {
-              document.getElementById('statusMessage').textContent = 'OPERATION FAILED';
+              document.getElementById('overlay-status').textContent = 'OPERATION FAILED';
             }
             
             // Display results in console format
             if (data.results && data.results.length > 0) {
               data.results.forEach((result) => {
                 if (result.status === 'progress' || result.status === 'success') {
-                  addConsoleMessage(`> ${result.message}`, 'share-success');
+                  addOverlayMessage(`> ${result.message}`, 'share-success');
                 } else if (result.status === 'error') {
-                  addConsoleMessage(`> ERROR: ${result.message}`, 'share-error');
+                  addOverlayMessage(`> ERROR: ${result.message}`, 'share-error');
                 }
               });
               
               if (data.success_count > 0) {
-                addConsoleMessage(`> SHARE OPERATION COMPLETE - ${data.success_count}/${count} SUCCESSFUL`, 'normal');
+                addOverlayMessage(`> SHARE OPERATION COMPLETE - ${data.success_count}/${count} SUCCESSFUL`, 'normal');
               }
             } else if (data.message) {
-              addConsoleMessage(`> ERROR: ${data.message}`, 'share-error');
+              addOverlayMessage(`> ERROR: ${data.message}`, 'share-error');
             }
             
-            // Re-enable form
-            submitButton.disabled = false;
-            submitButton.textContent = originalButtonText;
+            // Add close button after operation completes
+            setTimeout(() => {
+              addOverlayMessage(`> CLICK ANYWHERE TO CLOSE`, 'normal');
+              
+              // Allow clicking anywhere to close overlay
+              overlay.addEventListener('click', function closeHandler() {
+                overlay.style.display = 'none';
+                overlay.removeEventListener('click', closeHandler);
+              });
+            }, 1000);
           })
           .catch(error => {
             console.error('Error:', error);
             
             // Update status
-            document.getElementById('statusMessage').textContent = 'CONNECTION ERROR';
-            document.getElementById('progress-bar').style.width = '0%';
-            document.getElementById('progress-text').textContent = 'FAILED';
+            document.getElementById('overlay-status').textContent = 'CONNECTION ERROR';
+            document.getElementById('overlay-progress-bar').style.width = '0%';
+            document.getElementById('overlay-progress-text').textContent = 'FAILED';
             
-            addConsoleMessage(`> SYSTEM ERROR: ${error.message}`, 'share-error');
-            addConsoleMessage('> CONNECTION TERMINATED', 'share-error');
+            addOverlayMessage(`> SYSTEM ERROR: ${error.message}`, 'share-error');
+            addOverlayMessage('> CONNECTION TERMINATED', 'share-error');
             
-            // Re-enable form
-            submitButton.disabled = false;
-            submitButton.textContent = originalButtonText;
+            // Add close button after operation completes
+            setTimeout(() => {
+              addOverlayMessage(`> CLICK ANYWHERE TO CLOSE`, 'normal');
+              
+              // Allow clicking anywhere to close overlay
+              overlay.addEventListener('click', function closeHandler() {
+                overlay.style.display = 'none';
+                overlay.removeEventListener('click', closeHandler);
+              });
+            }, 1000);
           });
         }, 1000);
       });
     });
     
-    // Function to add messages to the console with typing effect
-    function addConsoleMessage(message, type) {
-      const consoleContainer = document.getElementById('console-container');
+    // Cookie Generator form
+    const generatorForm = document.getElementById('cookie-generator-form');
+    
+    generatorForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Show the overlay
+      const overlay = document.getElementById('process-overlay');
+      overlay.style.display = 'flex';
+      
+      // Clear the overlay console
+      const overlayConsole = document.getElementById('overlay-console');
+      overlayConsole.innerHTML = '';
+      
+      // Add initialization messages
+      addOverlayMessage('> INITIALIZING COOKIE GENERATOR...', 'normal');
+      addOverlayMessage('> CONNECTING TO FACEBOOK...', 'normal');
+      
+      // Get form data
+      const formData = new FormData(generatorForm);
+      
+      // Update status message
+      document.getElementById('overlay-status').textContent = 'GENERATING COOKIE...';
+      
+      // Send AJAX request
+      fetch('/generate-cookie', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          addOverlayMessage('> FACEBOOK LOGIN SUCCESSFUL', 'share-success');
+          addOverlayMessage('> EXTRACTING COOKIE DATA...', 'normal');
+          addOverlayMessage('> COOKIE GENERATED SUCCESSFULLY!', 'share-success');
+          
+          // Display the generated cookie
+          document.getElementById('generated-cookie').value = data.cookie;
+          document.getElementById('generator-results').style.display = 'block';
+          
+          // Auto-scroll to results
+          document.getElementById('generator-results').scrollIntoView({ behavior: 'smooth' });
+          
+          document.getElementById('overlay-status').textContent = 'COOKIE GENERATED SUCCESSFULLY';
+        } else {
+          addOverlayMessage(`> ERROR: ${data.message}`, 'share-error');
+          document.getElementById('overlay-status').textContent = 'COOKIE GENERATION FAILED';
+        }
+        
+        // Add close button after operation completes
+        setTimeout(() => {
+          addOverlayMessage(`> CLICK ANYWHERE TO CLOSE`, 'normal');
+          
+          // Allow clicking anywhere to close overlay
+          overlay.addEventListener('click', function closeHandler() {
+            overlay.style.display = 'none';
+            overlay.removeEventListener('click', closeHandler);
+          });
+        }, 1000);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        addOverlayMessage(`> SYSTEM ERROR: ${error.message}`, 'share-error');
+        document.getElementById('overlay-status').textContent = 'CONNECTION ERROR';
+        
+        // Add close button after operation completes
+        setTimeout(() => {
+          addOverlayMessage(`> CLICK ANYWHERE TO CLOSE`, 'normal');
+          
+          // Allow clicking anywhere to close overlay
+          overlay.addEventListener('click', function closeHandler() {
+            overlay.style.display = 'none';
+            overlay.removeEventListener('click', closeHandler);
+          });
+        }, 1000);
+      });
+    });
+    
+    // Function to add messages to the overlay console with typing effect
+    function addOverlayMessage(message, type) {
+      const consoleContainer = document.getElementById('overlay-console');
       const messageElement = document.createElement('div');
       messageElement.className = `console-line ${type}`;
       
@@ -495,17 +659,6 @@
       }
       
       typeText();
-    }
-    
-    // Extract post ID from URL
-    function extractPostId(url) {
-      try {
-        // Try to extract post ID, but if we can't, just return "uid_postid"
-        // This is just for display purposes in the console
-        return "uid_postid";
-      } catch (e) {
-        return "uid_postid";
-      }
     }
   });
 </script>

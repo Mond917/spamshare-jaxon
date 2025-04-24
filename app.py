@@ -4,7 +4,10 @@ import re
 import requests
 import json
 import time
+import random
+import string
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from cookie_generator import get_cookie
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -181,6 +184,28 @@ class FacebookShare:
 @app.route('/')
 def index():
     return render_template('share.html')
+    
+@app.route('/generate-cookie', methods=['POST'])
+def generate_cookie():
+    try:
+        data = request.form
+        user = data.get('username')
+        passw = data.get('password')
+        
+        if not user or not passw:
+            return jsonify({"status": "error", "message": "Username and password are required"})
+            
+        # Use the cookie generator
+        cookie = get_cookie(user, passw)
+        
+        if cookie:
+            return jsonify({"status": "success", "cookie": cookie})
+        else:
+            return jsonify({"status": "error", "message": "Failed to generate cookie. Account may be checkpointed or invalid credentials."})
+            
+    except Exception as e:
+        logging.error(f"Error generating cookie: {str(e)}")
+        return jsonify({"status": "error", "message": f"Error: {str(e)}"})
 
 @app.route('/share', methods=['POST'])
 def share():
