@@ -1,5 +1,5 @@
 import os, random, string, uuid, re
-import requests, httpx
+import requests
 from bs4 import BeautifulSoup
 
 def get_cookie(user, passw):
