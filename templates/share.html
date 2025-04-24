@@ -410,7 +410,13 @@
             method: 'POST',
             body: formData
           })
-          .then(response => response.json())
+          .then(response => {
+            // Check if response is valid JSON
+            if (!response.ok) {
+              throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+          })
           .then(data => {
             const count = parseInt(formData.get('count'));
             const percentage = data.success_count > 0 ? (data.success_count / count) * 100 : 0;
@@ -428,20 +434,17 @@
             
             // Display results in console format
             if (data.results && data.results.length > 0) {
-              // Format the post_url to extract post_id
-              const postUrl = formData.get('post_url');
-              const postId = extractPostId(postUrl);
-              
-              data.results.forEach((result, index) => {
-                const messageClass = result.status === 'success' ? 'share-success' : 'share-error';
-                if (result.status === 'success') {
-                  addConsoleMessage(`> PERFORMING SHARES ${postId} ${index}/${count}`, 'share-success');
-                } else {
+              data.results.forEach((result) => {
+                if (result.status === 'progress' || result.status === 'success') {
+                  addConsoleMessage(`> ${result.message}`, 'share-success');
+                } else if (result.status === 'error') {
                   addConsoleMessage(`> ERROR: ${result.message}`, 'share-error');
                 }
               });
               
-              addConsoleMessage(`> SHARE OPERATION COMPLETE - ${data.success_count}/${count} SUCCESSFUL`, 'normal');
+              if (data.success_count > 0) {
+                addConsoleMessage(`> SHARE OPERATION COMPLETE - ${data.success_count}/${count} SUCCESSFUL`, 'normal');
+              }
             } else if (data.message) {
               addConsoleMessage(`> ERROR: ${data.message}`, 'share-error');
             }
